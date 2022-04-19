@@ -1,31 +1,36 @@
 package com.example.rpncalculator
 
+import android.content.res.Resources
 import android.graphics.Color
 import android.os.Bundle
-import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.*
+import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.preference.PreferenceManager
 import com.example.rpncalculator.databinding.FragmentFirstBinding
-import java.lang.Exception
+import kotlin.math.abs
 import kotlin.math.pow
+import kotlin.math.round
 import kotlin.math.sqrt
 
-class FirstFragment : Fragment() {
+class FirstFragment : Fragment(){
 
     private var _binding: FragmentFirstBinding? = null
     private lateinit var editTextView: TextView
     private lateinit var editRow: TableRow
     private lateinit var lastStackRow: TableRow
     private lateinit var stackSizeView: TextView
-    private val mutableList = mutableListOf<Float>()
+    private val mutableList = mutableListOf<Double>()
     private var stackTextViews = mutableListOf<TextView>()
     private var stackDisplaySize = 4
-
     private val binding get() = _binding!!
+    private val screenWidth = getScreenWidth()
+    private var lastFirstItem: Double? = null
+    private var lastSecondItem: Double? = null
+    private var firstX = 0.0F
+    private var firstY = 0.0F
+    private var precision = 2
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -69,17 +74,52 @@ class FirstFragment : Fragment() {
         binding.dropBtn.setOnClickListener {onDropClick(binding.dropBtn)}
         binding.setBtn.setOnClickListener {onSetClick(binding.setBtn)}
 
+        binding.myLayout.setOnTouchListener() {_:View, m: MotionEvent -> handleTouch(m); true}
         loadSettings()
+    }
+
+    private fun handleTouch(m: MotionEvent) {
+        val action: Int = m.action
+        if (action == MotionEvent.ACTION_DOWN) {
+            firstX = m.rawX
+            firstY = m.rawY
+        } else if(action == MotionEvent.ACTION_UP) {
+            val finalX = m.rawX
+            val finalY = m.rawY
+
+            val distX = (finalX - firstX).toInt()
+            val distY = (finalY - firstY).toInt()
+
+            if (abs(distX) > abs(distY) && abs(distX) > screenWidth*1/2) {
+                if (firstX < finalX)
+                undo()
+            }
+        }
+    }
+
+    private fun getScreenWidth(): Int {
+        return Resources.getSystem().displayMetrics.widthPixels
+    }
+
+    private fun undo(){
+        if (lastSecondItem != null) {
+            mutableList[0] = lastSecondItem!!
+            mutableList.add(0, lastFirstItem!!)
+
+        } else if(lastFirstItem != null){
+            mutableList[0] = lastFirstItem!!
+        }
+        lastFirstItem = null
+        lastSecondItem = null
+        updateStackView()
     }
 
     private fun loadSettings() {
         val sp = PreferenceManager.getDefaultSharedPreferences(requireActivity())
         val color: String? = sp.getString("color", "")
-        val stackSize: String? = sp.getString("stackSize", "4")
-        val stackSizeInt = stackSize?.toIntOrNull()
-        if (stackSizeInt != null) {
-            stackDisplaySize = stackSizeInt
-        }
+        stackDisplaySize = sp.getString("stackSize", "4")?.toInt() ?: 4
+        precision = sp.getString("precision", "3")?.toInt() ?: 3
+
         val tableLayout2: TableLayout = binding.tableLayout2
         tableLayout2.setBackgroundColor(Color.parseColor(color))
         setDisplay(stackDisplaySize)
@@ -146,7 +186,7 @@ class FirstFragment : Fragment() {
         editTextView.append(btn.text.toString())
     }
 
-    fun onEnterClick(v: View){
+    private fun onEnterClick(v: View){
 
         if (editTextView.text.toString() == ""){
             if (mutableList.size > 0){
@@ -156,7 +196,7 @@ class FirstFragment : Fragment() {
             }
         } else {
             try{
-                val value: Float = editTextView.text.toString().toFloat()
+                val value: Double = editTextView.text.toString().toDouble()
                 mutableList.add(0, value)
                 editTextView.text = ""
             } catch (e: Exception) {
@@ -169,7 +209,8 @@ class FirstFragment : Fragment() {
         updateStackView()
     }
 
-    fun updateStackView(){
+    private fun updateStackView(){
+        val tmp = 10.toDouble().pow(precision)
         val stackSize = mutableList.size
         stackSizeView.text = stackSize.toString()
         var upTo = stackDisplaySize - 1
@@ -180,12 +221,14 @@ class FirstFragment : Fragment() {
             }
         }
         for (index in 0..upTo) {
-            stackTextViews[index].text = mutableList[index].toString()
+            stackTextViews[index].text = (round(mutableList[index]*tmp) / tmp).toString()
         }
     }
 
-    fun onPlusClick(v: View) {
+    private fun onPlusClick(v: View) {
         if (mutableList.size >= 2){
+            lastFirstItem = mutableList[0]
+            lastSecondItem = mutableList[1]
             val value = mutableList[0] + mutableList[1]
             mutableList.removeAt(0)
             mutableList[0] = value
@@ -193,8 +236,10 @@ class FirstFragment : Fragment() {
         }
     }
 
-    fun onMinusClick(v: View){
+    private fun onMinusClick(v: View){
         if (mutableList.size >= 2){
+            lastFirstItem = mutableList[0]
+            lastSecondItem = mutableList[1]
             val value = mutableList[0] - mutableList[1]
             mutableList.removeAt(0)
             mutableList[0] = value
@@ -202,8 +247,10 @@ class FirstFragment : Fragment() {
         }
     }
 
-    fun onDivisionClick(v: View){
+    private fun onDivisionClick(v: View){
         if (mutableList.size >= 2){
+            lastFirstItem = mutableList[0]
+            lastSecondItem = mutableList[1]
             val value = mutableList[0] / mutableList[1]
             mutableList.removeAt(0)
             mutableList[0] = value
@@ -211,8 +258,10 @@ class FirstFragment : Fragment() {
         }
     }
 
-    fun onMultiplicationClick(v: View){
+    private fun onMultiplicationClick(v: View){
         if (mutableList.size >= 2){
+            lastFirstItem = mutableList[0]
+            lastSecondItem = mutableList[1]
             val value = mutableList[0] * mutableList[1]
             mutableList.removeAt(0)
             mutableList[0] = value
@@ -220,16 +269,19 @@ class FirstFragment : Fragment() {
         }
     }
 
-    fun onRootClick(v: View){
+    private fun onRootClick(v: View){
         if (mutableList.size >= 1){
+            lastFirstItem = mutableList[0]
             val value = sqrt(mutableList[0])
             mutableList[0] = value
             updateStackView()
         }
     }
 
-    fun onPowerClick(v: View){
+    private fun onPowerClick(v: View){
         if (mutableList.size >= 2){
+            lastFirstItem = mutableList[0]
+            lastSecondItem = mutableList[1]
             val value = mutableList[0].pow(mutableList[1])
             mutableList.removeAt(0)
             mutableList[0] = value
@@ -237,18 +289,18 @@ class FirstFragment : Fragment() {
         }
     }
 
-    fun onDropClick(v: View){
+    private fun onDropClick(v: View){
         if (mutableList.size >= 1) {
             mutableList.removeAt(0)
             updateStackView()
         }
     }
 
-    fun onBackSpaceClick(v: View){
+    private fun onBackSpaceClick(v: View){
         editTextView.text = editTextView.text.dropLast(1)
     }
 
-    fun onSwapClick(v: View){
+    private fun onSwapClick(v: View){
         if(mutableList.size >= 2){
             val tmp = mutableList[0]
             mutableList[0] = mutableList[1]
@@ -257,19 +309,20 @@ class FirstFragment : Fragment() {
         }
     }
 
-    fun onACClick(v: View){
+    private fun onACClick(v: View){
         mutableList.removeAll(mutableList)
         updateStackView()
     }
 
-    fun onSignClick(v: View){
+    private fun onSignClick(v: View){
         if (mutableList.size >= 1){
             mutableList[0] = -mutableList[0]
             updateStackView()
         }
     }
 
-    fun onSetClick(v: View){
+    private fun onSetClick(v: View){
         findNavController().navigate(R.id.action_FirstFragment_to_settingsFragment)
     }
+
 }

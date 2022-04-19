@@ -18,6 +18,14 @@
             app:title="@string/stack_size_title"
             app:useSimpleSummaryProvider="true" />
 
+        <ListPreference
+            app:defaultValue="3"
+            app:entries="@array/precision_values"
+            app:entryValues="@array/precision_values"
+            app:key="precision"
+            app:title="@string/precision_title"
+            app:useSimpleSummaryProvider="true" />
+
     </PreferenceCategory>
 
 </PreferenceScreen>
