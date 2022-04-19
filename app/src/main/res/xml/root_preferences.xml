@@ -26,6 +26,12 @@
             app:title="@string/precision_title"
             app:useSimpleSummaryProvider="true" />
 
+        <SeekBarPreference
+            app:key="fontSize"
+            app:title="Font size"
+            app:showSeekBarValue="true"
+            app:defaultValue= "60" />
+
     </PreferenceCategory>
 
 </PreferenceScreen>

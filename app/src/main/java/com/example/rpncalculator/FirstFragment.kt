@@ -31,6 +31,7 @@ class FirstFragment : Fragment(){
     private var firstX = 0.0F
     private var firstY = 0.0F
     private var precision = 2
+    private var fontSize: Float = 40.0F
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -119,7 +120,7 @@ class FirstFragment : Fragment(){
         val color: String? = sp.getString("color", "")
         stackDisplaySize = sp.getString("stackSize", "4")?.toInt() ?: 4
         precision = sp.getString("precision", "3")?.toInt() ?: 3
-
+        fontSize = sp.getInt("fontSize", 40).toFloat()
         val tableLayout2: TableLayout = binding.tableLayout2
         tableLayout2.setBackgroundColor(Color.parseColor(color))
         setDisplay(stackDisplaySize)
@@ -138,11 +139,11 @@ class FirstFragment : Fragment(){
         newRow.addView(newSpace2)
         var newTextView1: TextView = TextView(activity)
         newTextView1.text = "STACK:"
-        newTextView1.textSize = 32.0F
+        newTextView1.textSize = (0.8 * fontSize).toFloat()
         newRow.addView(newTextView1)
         var newTextView2: TextView = TextView(activity)
         newTextView2.text = "0"
-        newTextView2.textSize = 32.0F
+        newTextView2.textSize = (0.8 * fontSize).toFloat()
         stackSizeView = newTextView2
         newRow.addView(newTextView2)
         val newSpace3: Space = Space(activity)
@@ -156,8 +157,8 @@ class FirstFragment : Fragment(){
             newTextView1.text = "$index:"
             newTextView2.text = ""
             stackTextViews.add(0,newTextView2)
-            newTextView1.textSize = 40.0F
-            newTextView2.textSize = 40.0F
+            newTextView1.textSize = fontSize
+            newTextView2.textSize = fontSize
             newRow.addView(newTextView1)
             newRow.addView(newTextView2)
             tableLayout2.addView(newRow)
@@ -169,8 +170,8 @@ class FirstFragment : Fragment(){
         newTextView2 = TextView(activity)
         newTextView1.text = "=>"
         newTextView2.text = ""
-        newTextView1.textSize = 40.0F
-        newTextView2.textSize = 40.0F
+        newTextView1.textSize = fontSize
+        newTextView2.textSize = fontSize
         newRow.addView(newTextView1)
         newRow.addView(newTextView2)
         tableLayout2.addView(newRow)
