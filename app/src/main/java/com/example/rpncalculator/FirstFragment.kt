@@ -1,5 +1,7 @@
 package com.example.rpncalculator
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.content.res.Resources
 import android.graphics.Color
 import android.os.Bundle
@@ -43,6 +45,7 @@ class FirstFragment : Fragment(){
 
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         stackSizeView = binding.stackSizeView
@@ -96,6 +99,8 @@ class FirstFragment : Fragment(){
                 undo()
             }
         }
+
+
     }
 
     private fun getScreenWidth(): Int {
@@ -116,13 +121,13 @@ class FirstFragment : Fragment(){
     }
 
     private fun loadSettings() {
-        val sp = PreferenceManager.getDefaultSharedPreferences(requireActivity())
-        val color: String? = sp.getString("color", "")
-        stackDisplaySize = sp.getString("stackSize", "4")?.toInt() ?: 4
-        precision = sp.getString("precision", "3")?.toInt() ?: 3
-        fontSize = sp.getInt("fontSize", 40).toFloat()
-        val tableLayout2: TableLayout = binding.tableLayout2
-        tableLayout2.setBackgroundColor(Color.parseColor(color))
+        val sp = activity?.let { PreferenceManager.getDefaultSharedPreferences(it) }
+        val color: String? = sp?.getString("color", "")
+        stackDisplaySize = sp?.getString("stackSize", "4")?.toInt() ?: 4
+        precision = sp?.getString("precision", "3")?.toInt() ?: 3
+        fontSize = sp?.getInt("fontSize", 40)!!.toFloat()
+        val tableLayout: TableLayout = binding.tableLayout2
+        tableLayout.setBackgroundColor(Color.parseColor(color))
         setDisplay(stackDisplaySize)
         updateStackView()
     }
@@ -241,7 +246,7 @@ class FirstFragment : Fragment(){
         if (mutableList.size >= 2){
             lastFirstItem = mutableList[0]
             lastSecondItem = mutableList[1]
-            val value = mutableList[0] - mutableList[1]
+            val value = mutableList[1] - mutableList[0]
             mutableList.removeAt(0)
             mutableList[0] = value
             updateStackView()
@@ -250,12 +255,16 @@ class FirstFragment : Fragment(){
 
     private fun onDivisionClick(v: View){
         if (mutableList.size >= 2){
-            lastFirstItem = mutableList[0]
-            lastSecondItem = mutableList[1]
-            val value = mutableList[0] / mutableList[1]
-            mutableList.removeAt(0)
-            mutableList[0] = value
-            updateStackView()
+            if (mutableList[0] == 0.0){
+                Toast.makeText(activity, "Błąd dzielenia przez 0", Toast.LENGTH_LONG).show()
+            }else{
+                lastFirstItem = mutableList[0]
+                lastSecondItem = mutableList[1]
+                val value = mutableList[1] / mutableList[0]
+                mutableList.removeAt(0)
+                mutableList[0] = value
+                updateStackView()
+            }
         }
     }
 
@@ -272,10 +281,14 @@ class FirstFragment : Fragment(){
 
     private fun onRootClick(v: View){
         if (mutableList.size >= 1){
-            lastFirstItem = mutableList[0]
-            val value = sqrt(mutableList[0])
-            mutableList[0] = value
-            updateStackView()
+            if (mutableList[0] < 0){
+                Toast.makeText(activity, "Brak pierwiastka stopnia parzystego z liczby ujemnej", Toast.LENGTH_LONG).show()
+            }else{
+                lastFirstItem = mutableList[0]
+                val value = sqrt(mutableList[0])
+                mutableList[0] = value
+                updateStackView()
+            }
         }
     }
 
@@ -283,7 +296,7 @@ class FirstFragment : Fragment(){
         if (mutableList.size >= 2){
             lastFirstItem = mutableList[0]
             lastSecondItem = mutableList[1]
-            val value = mutableList[0].pow(mutableList[1])
+            val value = mutableList[1].pow(mutableList[0])
             mutableList.removeAt(0)
             mutableList[0] = value
             updateStackView()
@@ -325,5 +338,4 @@ class FirstFragment : Fragment(){
     private fun onSetClick(v: View){
         findNavController().navigate(R.id.action_FirstFragment_to_settingsFragment)
     }
-
 }
