@@ -99,8 +99,6 @@ class FirstFragment : Fragment(){
                 undo()
             }
         }
-
-
     }
 
     private fun getScreenWidth(): Int {
@@ -121,11 +119,11 @@ class FirstFragment : Fragment(){
     }
 
     private fun loadSettings() {
-        val sp = activity?.let { PreferenceManager.getDefaultSharedPreferences(it) }
-        val color: String? = sp?.getString("color", "")
-        stackDisplaySize = sp?.getString("stackSize", "4")?.toInt() ?: 4
-        precision = sp?.getString("precision", "3")?.toInt() ?: 3
-        fontSize = sp?.getInt("fontSize", 40)!!.toFloat()
+        val sp = PreferenceManager.getDefaultSharedPreferences(requireActivity())
+        val color: String? = sp.getString("color", "#a8a8a8")
+        stackDisplaySize = sp.getString("stackSize", "4")?.toInt() ?: 4
+        precision = sp.getString("precision", "3")?.toInt() ?: 3
+        fontSize = sp.getInt("fontSize", 60).toFloat()
         val tableLayout: TableLayout = binding.tableLayout2
         tableLayout.setBackgroundColor(Color.parseColor(color))
         setDisplay(stackDisplaySize)
